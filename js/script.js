@@ -81,22 +81,23 @@ d.spawner = function() {
     );
 }
 d.clock = function({description='', good=false, max=4, progress=undefined}={description: '', good: false, max: 4, progress: undefined}) {
-    let e = d('clock', 
-        d('banner', 
-            d('handle clock-handle'), 
-            input('description', {placeholder: 'Clock'}).val(description), 
-        ), 
-        d('widget', 
-            d('core'), 
-            d('disc'), 
-        ), 
-    ).attr(good ? 'good' : 'bad', '')
-    d.clock.populate(e, max, progress);
-    e.on('click', event => click_clock(e, event));
-    e.find('.widget').on('wheel', event => scale_clock(e, event));
-    e.find('.clock-handle').on('click', event => toggle_clock(e, event));
-    e.find('.clock-handle').on('dblclick', event => remove(e, event));
-    return e;
+  let e = d('clock', 
+      d('banner', 
+          d('handle clock-handle'), 
+          input('description', {placeholder: 'Clock'}).val(description), 
+      ), 
+      d('widget', 
+          d('core'), 
+          d('disc'), 
+          d('segment-count').text(max), // Add this line
+      ), 
+  ).attr(good ? 'good' : 'bad', '')
+  d.clock.populate(e, max, progress);
+  e.on('click', event => click_clock(e, event));
+  e.find('.widget').on('wheel', event => scale_clock(e, event));
+  e.find('.clock-handle').on('click', event => toggle_clock(e, event));
+  e.find('.clock-handle').on('dblclick', event => remove(e, event));
+  return e;
 }
 d.clock.populate = function(e, n, progress) {
     progress = progress == undefined ? Math.min(e.find('.slice[filled]').length, n) : progress;
@@ -149,40 +150,80 @@ let click_clock = function(clock, event) {
     update_clock(clock, i, true);
 }
 let update_clock = function(clock, i, inside) {
+    // Prevent triggering if the mouse is over the center element
+    if ($(event.target).closest('.segment-count').length > 0) {
+        return;
+    }
+
+    let currentFilled = clock.find('.slice[filled]').length;
+    let delta = 0;
+
     if (inside) {
         let filling = clock.find(`.slice[i="${i}"]`).attr('filled') == undefined;
         clock.find('.slice').each((j, e) => {
             let slice = $(e);
             let filled = slice.attr('filled') != undefined;
             let change = filling ? 
-                j < i && !filled : 
+                j <= i && !filled : 
                 j > i && filled;
+
             if (change) {
                 slice.attr('will-change', '');
             } else {
                 slice.removeAttr('will-change');
             }
         });
+
+        // Calculate the delta
+        if (filling) {
+            delta = i + 1 - currentFilled;
+        } else {
+            delta = i - currentFilled;
+        }
+        
+        // Show the delta in the center
+        let segmentCount = clock.find('.segment-count');
+        segmentCount.text(delta > 0 ? `+${delta}` : `${delta}`);
+        segmentCount.css('opacity', '1'); // Ensure the text is visible during mouseover
+
     } else {
         clock.find('.slice').removeAttr('will-change');
+        
+        // Hide the delta when the mouse leaves
+        let segmentCount = clock.find('.segment-count');
+        segmentCount.css('opacity', '0'); // Fade out the text
     }
 }
+
+
 let scale_clock = function(clock, event) {
-    if (!event.shiftKey) {
-        return;
-    }
-    event.preventDefault();
-    // event.stopPropagation();
-    let size = parseInt(clock.attr('n'));
-    let modifier = event.originalEvent.deltaY > 0 ? -INC : INC;
-    if (size == MIN && modifier > 0) {
-        modifier = 1; // Special sauce to allow MIN=3 but INC=2
-    }
-    let n = Math.max(MIN, size + modifier);
-    if (n != size) {
-        d.clock.populate(clock, n);
-    }
+  if (!event.shiftKey) {
+      return;
+  }
+  event.preventDefault();
+  let size = parseInt(clock.attr('n'));
+  let modifier = event.originalEvent.deltaY > 0 ? -INC : INC;
+  if (size == MIN && modifier > 0) {
+      modifier = 1; // Special sauce to allow MIN=3 but INC=2
+  }
+  let n = Math.max(MIN, size + modifier);
+  if (n != size) {
+      d.clock.populate(clock, n);
+      let segmentCount = clock.find('.segment-count');
+      segmentCount.text(n);
+      segmentCount.css('opacity', '1'); // Make the text visible
+
+      clearTimeout(segmentCount.data('timeout')); // Clear any existing timeout
+      let timeout = setTimeout(() => {
+          segmentCount.css('opacity', '0'); // Fade out after 2 seconds
+      }, 500);
+
+      segmentCount.data('timeout', timeout); // Store the timeout ID
+  }
 }
+
+
+
 let toggle_clock = function(clock, event) {
     if (!event.shiftKey) {
         return;

@@ -6,8 +6,8 @@
 }
 
 body {
-    --color-orange: #f06900;
-    --color-blue: #0f96ff;
+    --color-orange: #ff6767;
+    --color-blue: #f5d0b7;
     --color-dark: #020308;
     --color-mid: #101116;
     --color-light: #44454a;
@@ -31,7 +31,7 @@ body {
     --clock-border-thickness: 4px;
     --new-clock-button-diameter: 50px;
 
-    font-family: 'Kirsty';
+    font-family: 'IM Fell English', serif;
     margin: 0;
     background: var(--color-dark);
 }
@@ -45,7 +45,7 @@ input {
     outline: none;
     border: none;
     background: none;
-    font-family: 'Kirsty';
+    font-family: 'IM Fell English', serif;
 }
 input::placeholder {
     color: var(--color-light);
@@ -335,3 +335,17 @@ input::placeholder {
     transform-origin: center;
     transform: rotate(90deg);
 }
+
+.segment-count {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5em;
+  color: #ffffff; /* Set text color to white */
+  pointer-events: none; /* Prevent the text from interfering with clicks */
+  z-index: 1; /* Ensure it's on top of other elements */
+  opacity: 0; /* Start with the text hidden */
+  transition: opacity 0.5s ease; /* Smooth transition for fading */
+}
+
