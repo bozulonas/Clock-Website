@@ -125,35 +125,45 @@ let add_row = function() {
     return d.row().appendTo($('.rows'));
 }
 let add_clock = function(good=false, row=undefined) {
-    row = row ? row : $('.row').last();
-    if (row.length == 0) {
-        row = add_row();
-    }
-    let e = d.clock({good: good}).appendTo(row.find('.clocks'));
-    row.find('.spawner').insertAfter(e);
-    return e;
+  row = row ? row : $('.row').last();
+  if (row.length == 0) {
+      row = add_row();
+  }
+  let e = d.clock({good: good}).appendTo(row.find('.clocks'));
+  row.find('.spawner').insertAfter(e);
+
+  // Play monster says what's that sound if a bad clock is created
+  if (!good) {
+      playSound('432198__surfaceknight68__monster-says-whats-that_short.wav');
+  }
+
+  return e;
 }
 let click_clock = function(clock, event) {
-    let target = $(event.target);
-    if (!target.is('.slice')) {
-        return;
-    }
-    let i = parseInt(target.attr('i'));
-    let filling = clock.find(`.slice[i="${i}"]`).attr('filled') == undefined;
-    clock.find('.slice').each((j, e) => {
-        if (j > i || (j == i && !filling)) {
-            $(e).removeAttr('filled');
-        } else {
-            $(e).attr('filled', '');
-        }
-    });
-    update_clock(clock, i, true);
+  let target = $(event.target);
+  if (!target.is('.slice')) {
+      return;
+  }
+  let i = parseInt(target.attr('i'));
+  let filling = clock.find(`.slice[i="${i}"]`).attr('filled') == undefined;
+  clock.find('.slice').each((j, e) => {
+      if (j > i || (j == i && !filling)) {
+          $(e).removeAttr('filled');
+      } else {
+          $(e).attr('filled', '');
+      }
+  });
+  update_clock(clock, i, true);
+
+  // Play stone on stone impact sound
+  playSound('30008__thanvannispen__stone_on_stone_impact_loud1.mp3');
 }
 
 
 let isScaling = false; // Flag to indicate max segment count display
 
 let update_clock = function(clock, i, inside) {
+  // Respect the isScaling flag
   if (isScaling) {
       return; // Do nothing if the max segment count is being displayed
   }
@@ -188,6 +198,9 @@ let update_clock = function(clock, i, inside) {
       let segmentCount = clock.find('.segment-count');
       segmentCount.text(delta > 0 ? `+${delta}` : `${delta}`);
       segmentCount.css('opacity', '1'); // Ensure the text is visible during mouseover
+
+      // Play the hover sound
+      playSound('159698__qubodup__scroll-step-hover-sound-for-user-interface.FLAC');
 
   } else {
       clock.find('.slice').removeAttr('will-change');
@@ -242,10 +255,14 @@ let toggle_clock = function(clock, event) {
     }
 }
 let remove = function(e, event) {
-    if (event.shiftKey) {
-        return;
-    }
-    e.remove();
+  if (event.shiftKey) {
+      return;
+  }
+
+  // Play dying sound
+  playSound('648969__atomediadesign__dying.wav');
+
+  e.remove();
 }
 let help = function() {
     let e = $('.help-info');
@@ -327,7 +344,11 @@ let initialize = function() {
 }
 initialize();
 
-
+// Utility function to play an audio file
+let playSound = function(filename) {
+  let audio = new Audio(`/audio/${filename}`);
+  audio.play();
+}
 
 // Exports.
 let script = {};
