@@ -149,51 +149,55 @@ let click_clock = function(clock, event) {
     });
     update_clock(clock, i, true);
 }
+
+
+let isScaling = false; // Flag to indicate max segment count display
+
 let update_clock = function(clock, i, inside) {
-    // Prevent triggering if the mouse is over the center element
-    if ($(event.target).closest('.segment-count').length > 0) {
-        return;
-    }
+  if (isScaling) {
+      return; // Do nothing if the max segment count is being displayed
+  }
 
-    let currentFilled = clock.find('.slice[filled]').length;
-    let delta = 0;
+  let currentFilled = clock.find('.slice[filled]').length;
+  let delta = 0;
 
-    if (inside) {
-        let filling = clock.find(`.slice[i="${i}"]`).attr('filled') == undefined;
-        clock.find('.slice').each((j, e) => {
-            let slice = $(e);
-            let filled = slice.attr('filled') != undefined;
-            let change = filling ? 
-                j <= i && !filled : 
-                j > i && filled;
+  if (inside) {
+      let filling = clock.find(`.slice[i="${i}"]`).attr('filled') == undefined;
+      clock.find('.slice').each((j, e) => {
+          let slice = $(e);
+          let filled = slice.attr('filled') != undefined;
+          let change = filling ? 
+              j <= i && !filled : 
+              j > i && filled;
 
-            if (change) {
-                slice.attr('will-change', '');
-            } else {
-                slice.removeAttr('will-change');
-            }
-        });
+          if (change) {
+              slice.attr('will-change', '');
+          } else {
+              slice.removeAttr('will-change');
+          }
+      });
 
-        // Calculate the delta
-        if (filling) {
-            delta = i + 1 - currentFilled;
-        } else {
-            delta = i - currentFilled;
-        }
-        
-        // Show the delta in the center
-        let segmentCount = clock.find('.segment-count');
-        segmentCount.text(delta > 0 ? `+${delta}` : `${delta}`);
-        segmentCount.css('opacity', '1'); // Ensure the text is visible during mouseover
+      // Calculate the delta
+      if (filling) {
+          delta = i + 1 - currentFilled;
+      } else {
+          delta = i - currentFilled;
+      }
+      
+      // Show the delta in the center
+      let segmentCount = clock.find('.segment-count');
+      segmentCount.text(delta > 0 ? `+${delta}` : `${delta}`);
+      segmentCount.css('opacity', '1'); // Ensure the text is visible during mouseover
 
-    } else {
-        clock.find('.slice').removeAttr('will-change');
-        
-        // Hide the delta when the mouse leaves
-        let segmentCount = clock.find('.segment-count');
-        segmentCount.css('opacity', '0'); // Fade out the text
-    }
+  } else {
+      clock.find('.slice').removeAttr('will-change');
+      
+      // Hide the delta when the mouse leaves
+      let segmentCount = clock.find('.segment-count');
+      segmentCount.css('opacity', '0'); // Fade out the text
+  }
 }
+
 
 
 let scale_clock = function(clock, event) {
@@ -210,18 +214,19 @@ let scale_clock = function(clock, event) {
   if (n != size) {
       d.clock.populate(clock, n);
       let segmentCount = clock.find('.segment-count');
-      segmentCount.text(n);
+      segmentCount.text(n); // Show the segment count
       segmentCount.css('opacity', '1'); // Make the text visible
 
+      isScaling = true; // Set the flag to indicate scaling mode
       clearTimeout(segmentCount.data('timeout')); // Clear any existing timeout
       let timeout = setTimeout(() => {
           segmentCount.css('opacity', '0'); // Fade out after 2 seconds
+          isScaling = false; // Reset the flag after timeout
       }, 500);
 
       segmentCount.data('timeout', timeout); // Store the timeout ID
   }
 }
-
 
 
 let toggle_clock = function(clock, event) {
