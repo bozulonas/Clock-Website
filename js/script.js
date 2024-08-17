@@ -122,8 +122,11 @@ d.clock.populate = function(e, n, progress) {
 }
 
 let add_row = function() {
-    return d.row().appendTo($('.rows'));
+  let newRow = d.row().appendTo($('.rows'));
+  updateJsonText(); // Call this after adding a row
+  return newRow;
 }
+
 let add_clock = function(good=false, row=undefined) {
   row = row ? row : $('.row').last();
   if (row.length == 0) {
@@ -131,14 +134,15 @@ let add_clock = function(good=false, row=undefined) {
   }
   let e = d.clock({good: good}).appendTo(row.find('.clocks'));
   row.find('.spawner').insertAfter(e);
-
-  // Play monster says what's that sound if a bad clock is created
+  
   if (!good) {
       playSound('432198__surfaceknight68__monster-says-whats-that_short.wav');
   }
 
+  updateJsonText(); // Call this after adding a clock
   return e;
 }
+
 let click_clock = function(clock, event) {
   let target = $(event.target);
   if (!target.is('.slice')) {
@@ -157,6 +161,7 @@ let click_clock = function(clock, event) {
 
   // Play stone on stone impact sound
   playSound('30008__thanvannispen__stone_on_stone_impact_loud1.mp3');
+  updateJsonText(); // update state
 }
 
 
@@ -209,6 +214,7 @@ let update_clock = function(clock, i, inside) {
       let segmentCount = clock.find('.segment-count');
       segmentCount.css('opacity', '0'); // Fade out the text
   }
+  updateJsonText(); // update state
 }
 
 
@@ -239,6 +245,7 @@ let scale_clock = function(clock, event) {
 
       segmentCount.data('timeout', timeout); // Store the timeout ID
   }
+  updateJsonText(); // update state
 }
 
 
@@ -253,17 +260,22 @@ let toggle_clock = function(clock, event) {
         clock.removeAttr('good');
         clock.attr('bad', '');
     }
+    updateJsonText(); // update state
 }
+
+
+
 let remove = function(e, event) {
   if (event.shiftKey) {
       return;
   }
 
-  // Play dying sound
   playSound('648969__atomediadesign__dying.wav');
-
   e.remove();
+  updateJsonText(); // Call this after removing an element
 }
+
+
 let help = function() {
     let e = $('.help-info');
     if (e.length) {
@@ -349,6 +361,73 @@ let playSound = function(filename) {
   let audio = new Audio(`/audio/${filename}`);
   audio.play();
 }
+
+
+// STuff to handle JSON export / import
+// Add event listeners for the modal
+$(document).ready(function() {
+  let modal = $('#state-modal');
+  let stateButton = $('#state-button');
+  let importButton = $('#import-state');
+  let cancelButton = $('#cancel-state');
+  let jsonText = $('#json-text');
+
+  // Show modal when "State" button is clicked
+  stateButton.on('click', function() {
+      updateJsonText(); // Update the JSON text area with the current state
+      modal.show();
+  });
+
+  // Handle importing state
+  importButton.on('click', function() {
+      loadFromJson(); // Load the JSON from the text area
+      modal.hide(); // Close the modal
+  });
+
+  // Handle cancel
+  cancelButton.on('click', function() {
+      modal.hide(); // Just close the modal without making any changes
+  });
+
+  // Close the modal when clicking outside of it
+  $(window).on('click', function(event) {
+      if ($(event.target).is(modal)) {
+          modal.hide();
+      }
+  });
+
+  function updateJsonText() {
+      let data = $('.row')
+          .map((i, r) => ({
+              name: $(r).find('.name').val().trim(), 
+              clocks: $(r).find('.clock')
+                  .map((j, c) => ({
+                      description: $(c).find('.description').val().trim(), 
+                      good: $(c).attr('good') != undefined, 
+                      max: parseInt($(c).attr('n')), 
+                      progress: $(c).find('[filled]').length, 
+                  }))
+                  .get(), 
+              minimized: $(r).is('[minimized]'), 
+          }))
+          .get();
+      jsonText.val(JSON.stringify(data, null, 2));
+  }
+
+  function loadFromJson() {
+      try {
+          let data = JSON.parse(jsonText.val());
+          $('.rows').empty(); // Clear existing rows
+          for (let row of data) {
+              d.row(row).appendTo($('.rows'));
+          }
+          updateJsonText(); // Update the JSON text area after loading new data
+      } catch (e) {
+          alert('Invalid JSON!');
+      }
+  }
+});
+
 
 // Exports.
 let script = {};
