@@ -337,18 +337,18 @@ let initialize = function() {
               d('text').text('State'), 
           ), 
           d('button help', 
-            d('text').text('?'), 
-        ), 
+              d('text').text('?'), 
+          ), 
       ), 
       d('rows'), 
   ).appendTo($('body'));
 
+  // Binding click events
   main.find('.new-row').on('click', e => add_row());
   main.find('.bad-clock').on('click', e => add_clock());
   main.find('.good-clock').on('click', e => add_clock(true));
-  main.find('.state-button').on('click', e => showStateModal()); // Bind the click event to open the modal
+  main.find('.state-button').on('click', e => showStateModal()); // Correctly bind the state button
   main.find('.help').on('click', e => help());
-  
 
   Sortable.create($('.rows').get(0), {
       handle: '.row-handle',
@@ -363,9 +363,27 @@ let initialize = function() {
 // Function to show the modal when State button is clicked
 function showStateModal() {
   updateJsonText(); // Update the JSON text area with the current state
-  $('#state-modal').show();
+  $('#state-modal').show(); // Show the modal
 }
-initialize();
+
+// Utility function to update JSON in the modal textarea
+function updateJsonText() {
+  let data = $('.row')
+      .map((i, r) => ({
+          name: $(r).find('.name').val().trim(), 
+          clocks: $(r).find('.clock')
+              .map((j, c) => ({
+                  description: $(c).find('.description').val().trim(), 
+                  good: $(c).attr('good') != undefined, 
+                  max: parseInt($(c).attr('n')), 
+                  progress: $(c).find('[filled]').length, 
+              }))
+              .get(), 
+          minimized: $(r).is('[minimized]'), 
+      }))
+      .get();
+  $('#json-text').val(JSON.stringify(data, null, 2)); // Populate the JSON text area
+}
 
 // Utility function to play an audio file
 let playSound = function(filename) {
@@ -374,70 +392,57 @@ let playSound = function(filename) {
 }
 
 
-// STuff to handle JSON export / import
-// Add event listeners for the modal
+// Hide modal on cancel or click outside
 $(document).ready(function() {
   let modal = $('#state-modal');
-  let stateButton = $('#state-button');
-  let importButton = $('#import-state');
-  let cancelButton = $('#cancel-state');
-  let jsonText = $('#json-text');
-
-  // Show modal when "State" button is clicked
-  stateButton.on('click', function() {
-      updateJsonText(); // Update the JSON text area with the current state
-      modal.show();
+  $('#cancel-state').on('click', function() {
+      modal.hide(); // Hide the modal on cancel
   });
 
-  // Handle importing state
-  importButton.on('click', function() {
-      loadFromJson(); // Load the JSON from the text area
-      modal.hide(); // Close the modal
-  });
-
-  // Handle cancel
-  cancelButton.on('click', function() {
-      modal.hide(); // Just close the modal without making any changes
-  });
-
-  // Close the modal when clicking outside of it
   $(window).on('click', function(event) {
       if ($(event.target).is(modal)) {
-          modal.hide();
+          modal.hide(); // Close modal when clicking outside
       }
   });
 
-  function updateJsonText() {
-      let data = $('.row')
-          .map((i, r) => ({
-              name: $(r).find('.name').val().trim(), 
-              clocks: $(r).find('.clock')
-                  .map((j, c) => ({
-                      description: $(c).find('.description').val().trim(), 
-                      good: $(c).attr('good') != undefined, 
-                      max: parseInt($(c).attr('n')), 
-                      progress: $(c).find('[filled]').length, 
-                  }))
-                  .get(), 
-              minimized: $(r).is('[minimized]'), 
-          }))
-          .get();
-      jsonText.val(JSON.stringify(data, null, 2));
-  }
-
-  function loadFromJson() {
-      try {
-          let data = JSON.parse(jsonText.val());
-          $('.rows').empty(); // Clear existing rows
-          for (let row of data) {
-              d.row(row).appendTo($('.rows'));
-          }
-          updateJsonText(); // Update the JSON text area after loading new data
-      } catch (e) {
-          alert('Invalid JSON!');
-      }
-  }
+  $('#import-state').on('click', function() {
+      loadFromJson(); // Load JSON from text area
+      modal.hide(); // Hide modal after import
+  });
 });
+
+function loadFromJson() {
+  try {
+      let data = JSON.parse($('#json-text').val()); // Get JSON from the text area
+      
+      // Clear existing rows
+      $('.rows').empty();
+
+      // Loop through the data and recreate each row and its clocks
+      for (let row of data) {
+          let newRow = d.row({
+              name: row.name,
+              clocks: row.clocks.map(clock => ({
+                  description: clock.description,
+                  good: clock.good,
+                  max: clock.max,
+                  progress: clock.progress
+              })),
+              minimized: row.minimized
+          }).appendTo($('.rows'));
+      }
+
+      // Update the JSON text area to reflect the loaded state
+      updateJsonText();
+
+  } catch (e) {
+      alert('Invalid JSON!');
+      console.error('Error parsing JSON: ', e);
+  }
+}
+
+
+initialize();
 
 
 // Exports.
