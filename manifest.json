@@ -5,7 +5,7 @@
   "action": {
     "title": "Clock Utility",
     "icon": "/icon.svg",  // Make sure you have an icon file to reference here
-    "popover": "/index.html",  // This should point to your web app's main page
+    "popover": "/",  // This should point to your web app's main page
     "height": 600,
     "width": 500
   }
