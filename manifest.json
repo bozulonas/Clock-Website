@@ -4,8 +4,8 @@
   "manifest_version": 1,
   "action": {
     "title": "Clock Utility",
-    "icon": "/icon.svg",  // Make sure you have an icon file to reference here
-    "popover": "/",  // This should point to your web app's main page
+    "icon": "/icon.svg", 
+    "popover": "/", 
     "height": 600,
     "width": 500
   }
