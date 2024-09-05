@@ -84,7 +84,9 @@ input::placeholder {
     font-size: var(--font-size-button);
     color: var(--color-bright);
 }
-.menu .button:not(.help) .text::before {
+.menu .new-row .text::before,
+.menu .bad-clock .text::before,
+.menu .good-clock .text::before {
     content: "+ ";
 }
 .menu .button.new-row .text::before {
@@ -98,6 +100,9 @@ input::placeholder {
 }
 .menu .help .text {
     color: var(--color-light);
+}
+.menu .state-button .text {
+  color: var(--color-light);
 }
 .menu .button:hover {
     background: var(--color-mid);
@@ -358,7 +363,6 @@ input::placeholder {
   width: 100%; /* Full width */
   height: 100%; /* Full height */
   overflow: auto; /* Enable scroll if needed */
-  background-color: rgb(0,0,0); /* Fallback color */
   background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
 }
 
@@ -369,6 +373,7 @@ input::placeholder {
   border: 1px solid #888;
   width: 80%; /* Could be more or less, depending on screen size */
 }
+
 
 .modal-buttons {
   margin-top: 10px;

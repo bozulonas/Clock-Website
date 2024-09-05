@@ -322,37 +322,48 @@ let save = function() {
 
 
 let initialize = function() {
-    let main = d('main', 
-        d('menu', 
-            d('button new-row', 
-                d('text').text('Row'), 
-            ), 
-            d('button bad-clock', 
-                d('text').text('Clock (bad)'), 
-            ), 
-            d('button good-clock', 
-                d('text').text('Clock (good)'), 
-            ), 
-            d('button help', 
-                d('text').text('?'), 
-            ), 
+  let main = d('main', 
+      d('menu', 
+          d('button new-row', 
+              d('text').text('Row'), 
+          ), 
+          d('button bad-clock', 
+              d('text').text('Clock (bad)'), 
+          ), 
+          d('button good-clock', 
+              d('text').text('Clock (good)'), 
+          ), 
+          d('button state-button', // Add State button here
+              d('text').text('State'), 
+          ), 
+          d('button help', 
+            d('text').text('?'), 
         ), 
-        d('rows'), 
-    ).appendTo($('body'));
+      ), 
+      d('rows'), 
+  ).appendTo($('body'));
 
-    main.find('.new-row').on('click', e => add_row());
-    main.find('.bad-clock').on('click', e => add_clock());
-    main.find('.good-clock').on('click', e => add_clock(true));
-    main.find('.help').on('click', e => help());
+  main.find('.new-row').on('click', e => add_row());
+  main.find('.bad-clock').on('click', e => add_clock());
+  main.find('.good-clock').on('click', e => add_clock(true));
+  main.find('.state-button').on('click', e => showStateModal()); // Bind the click event to open the modal
+  main.find('.help').on('click', e => help());
+  
 
-    Sortable.create($('.rows').get(0), {
-        handle: '.row-handle',
-        animation: 150, 
-        ghostClass: 'dragged-item', 
-    });
+  Sortable.create($('.rows').get(0), {
+      handle: '.row-handle',
+      animation: 150, 
+      ghostClass: 'dragged-item', 
+  });
 
-    window.addEventListener('beforeunload', save);
-    load();
+  window.addEventListener('beforeunload', save);
+  load();
+}
+
+// Function to show the modal when State button is clicked
+function showStateModal() {
+  updateJsonText(); // Update the JSON text area with the current state
+  $('#state-modal').show();
 }
 initialize();
 
