@@ -1,25 +1,24 @@
 <?php
-// Allow requests from any origin (you can specify a domain instead of '*')
-header("Access-Control-Allow-Origin: *");
+// Allow requests from specific domains
+header("Access-Control-Allow-Origin: https://www.owlbear.rodeo");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
 
-// Specify the allowed HTTP methods (GET, POST, etc.)
-header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-
-// Specify the allowed headers
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
+// Allow iframe embedding from specific domains (Owlbear Rodeo)
+header("X-Frame-Options: ALLOW-FROM https://www.owlbear.rodeo");
+header("Content-Security-Policy: frame-ancestors 'self' https://www.owlbear.rodeo");
 
 // Handle preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    // Allow specific methods and headers for preflight requests
-    header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-    header("Access-Control-Allow-Headers: Content-Type, Authorization");
+    header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+    header("Access-Control-Allow-Headers: Content-Type");
     exit(0);
 }
 
 // Serve your index.html
 if (preg_match('/\.(?:png|jpg|jpeg|gif|css|js)$/', $_SERVER["REQUEST_URI"])) {
-    return false; // Serve static resources directly
+    return false; // Serve the requested static resource
 } else {
-    include_once("index.html"); // Serve your main HTML file
+    include_once("index.html"); // Serve the main HTML file
 }
 ?>
