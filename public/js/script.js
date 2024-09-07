@@ -387,7 +387,7 @@ function updateJsonText() {
 
 // Utility function to play an audio file
 let playSound = function(filename) {
-  let audio = new Audio(`/audio/${filename}`);
+  let audio = new Audio(`../audio/${filename}`);
   audio.play();
 }
 
