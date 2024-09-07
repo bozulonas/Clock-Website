@@ -445,6 +445,6 @@ function loadFromJson() {
 initialize();
 
 
-// Exports.
+// Exports
 let script = {};
 export {script};
