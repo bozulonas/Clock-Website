@@ -225,11 +225,11 @@ let scale_clock = function(clock, event) {
   }
   event.preventDefault();
   let size = parseInt(clock.attr('n'));
-  let modifier = event.originalEvent.deltaY > 0 ? -INC : INC;
-  if (size == MIN && modifier > 0) {
-      modifier = 1; // Special sauce to allow MIN=3 but INC=2
+  let modifier = event.originalEvent.deltaY > 0 ? INC : -INC;
+  if (size == MIN && modifier < 0) {
+        modifier = -1;
   }
-  let n = Math.max(MIN, size + modifier);
+  let n = Math.max(MIN, size - modifier);
   if (n != size) {
       d.clock.populate(clock, n);
       let segmentCount = clock.find('.segment-count');
